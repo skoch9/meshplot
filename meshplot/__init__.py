@@ -124,7 +124,7 @@ class Viewer():
                           [m[0], m[1], M[2]], [M[0], m[1], M[2]], [M[0], M[1], M[2]], [m[0], M[1], M[2]]])
 
         f_box = np.array([[0, 1], [1, 2], [2, 3], [3, 0], [4, 5], [5, 6], [6, 7], [7, 4],
-                    [0, 4], [1, 5], [2, 6], [7, 3]], dtype=np.uint16)
+                    [0, 4], [1, 5], [2, 6], [7, 3]], dtype=np.uint32)
         return v_box, f_box
 
     def __get_colors(self, v, f, c, sh):
@@ -190,7 +190,7 @@ class Viewer():
                 verts[ii*3+2] = v[f[ii,2]]
             v = verts
         else:
-            f = f.astype("uint16", copy=False).ravel()
+            f = f.astype("uint32", copy=False).ravel()
             ba_dict["index"] = BufferAttribute(f, normalized=False)
         
         ba_dict["position"] = BufferAttribute(v, normalized=False)
@@ -310,7 +310,7 @@ class Viewer():
             if obj["coloring"] == "FaceColors":
                 print("Face updates are currently only possible in vertex color mode.")
                 return
-            f = faces.astype("uint16", copy=False).ravel()
+            f = faces.astype("uint32", copy=False).ravel()
             print(obj["geometry"].attributes)
             obj["geometry"].attributes["index"].array = f
             #self.wireframe.attributes["position"].array = v # Wireframe updates?
