@@ -169,6 +169,20 @@ class Viewer():
     def add_mesh(self, v, f, c=None, uv=None, shading={}):
         sh = self.__get_shading(shading)
         mesh_obj = {}
+
+        #it is a tet
+        if v.shape[1] == 3 and f.shape[1] == 4:
+            f_tmp = np.ndarray([f.shape[0]*4, 3], dtype=f.dtype)
+            for i in range(f.shape[0]):
+                f_tmp[i*4+0] = np.array([f[i][1], f[i][0], f[i][2]])
+                f_tmp[i*4+1] = np.array([f[i][0], f[i][1], f[i][3]])
+                f_tmp[i*4+2] = np.array([f[i][1], f[i][2], f[i][3]])
+                f_tmp[i*4+3] = np.array([f[i][2], f[i][0], f[i][3]])
+            f = f_tmp
+        
+        if v.shape[1] == 2:
+            v = np.append(v, np.zeros([v.shape[0], 1]), 1)
+
         
         # Type adjustment vertices
         v = v.astype("float32", copy=False)
