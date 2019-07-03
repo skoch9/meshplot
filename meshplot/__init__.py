@@ -262,6 +262,13 @@ class Viewer():
 
         
     def add_lines(self, beginning, ending, shading={}, obj=None):
+        if beginning.shape[1] == 2:
+            beginning = np.append(
+                beginning, np.zeros([beginning.shape[0], 1]), 1)
+        if ending.shape[1] == 2:
+            ending = np.append(
+                ending, np.zeros([ending.shape[0], 1]), 1)
+
         sh = self.__get_shading(shading)
         lines = np.hstack([beginning, ending])
         lines = lines.reshape((-1, 3))
