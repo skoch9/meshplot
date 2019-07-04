@@ -262,12 +262,20 @@ class Viewer():
 
         
     def add_lines(self, beginning, ending, shading={}, obj=None):
-        if beginning.shape[1] == 2:
-            beginning = np.append(
-                beginning, np.zeros([beginning.shape[0], 1]), 1)
-        if ending.shape[1] == 2:
-            ending = np.append(
-                ending, np.zeros([ending.shape[0], 1]), 1)
+        if len(beginning.shape) == 1:
+            if len(beginning) == 2:
+                beginning = np.array([beginning[0], beginning[1], 0])
+        else:
+            if beginning.shape[1] == 2:
+                beginning = np.append(
+                    beginning, np.zeros([beginning.shape[0], 1]), 1)
+        if len(ending.shape) == 1:
+            if len(ending) == 2:
+                ending = np.array([ending[0], ending[1], 0])
+        else:
+            if ending.shape[1] == 2:
+                ending = np.append(
+                    ending, np.zeros([ending.shape[0], 1]), 1)
 
         sh = self.__get_shading(shading)
         lines = np.hstack([beginning, ending])
