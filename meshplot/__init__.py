@@ -275,6 +275,9 @@ class Viewer():
         return self.__add_line_geometry(lines, sh, obj)
     
     def add_edges(self, vertices, edges, shading={}, obj=None):
+        if vertices.shape[1] == 2:
+            vertices = np.append(
+                vertices, np.zeros([vertices.shape[0], 1]), 1)
         sh = self.__get_shading(shading)
         lines = np.zeros((edges.size, 3))
         cnt = 0
@@ -285,6 +288,9 @@ class Viewer():
         return self.__add_line_geometry(lines, sh, obj)     
 
     def add_points(self, points, shading={}, obj=None):
+        if points.shape[1] == 2:
+            points = np.append(
+                points, np.zeros([points.shape[0], 1]), 1)
         sh = self.__get_shading(shading)
         points = points.astype("float32", copy=False)
         mi = np.min(points, axis=0)
