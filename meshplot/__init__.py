@@ -15,7 +15,7 @@ def get_colors(inp, colormap="viridis", normalize=True, vmin=None, vmax=None):
     norm = plt.Normalize(vmin, vmax)
     return colormap(norm(inp))[:, :3]
 
-def gen_checkers(n_checkers_x, n_checkers_y, width=256, height=256): 
+def gen_checkers(n_checkers_x, n_checkers_y, width=256, height=256):
     # tex dims need to be power of two.
     array = np.ones((width, height, 3), dtype='float32')
 
@@ -37,35 +37,35 @@ class Viewer():
         self.__update_settings(settings)
         self._light = DirectionalLight(color='white', position=[0, 0, 1], intensity=0.6)
         self._light2 = AmbientLight(intensity=0.5)
-        self._cam = PerspectiveCamera(position=[0, 0, 1], lookAt=[0, 0, 0], fov=self.__s["fov"], 
+        self._cam = PerspectiveCamera(position=[0, 0, 1], lookAt=[0, 0, 0], fov=self.__s["fov"],
                                      aspect=self.__s["width"]/self.__s["height"], children=[self._light])
         self._orbit = OrbitControls(controlling=self._cam)
         self._scene = Scene(children=[self._cam, self._light2], background=self.__s["background"])#"#4c4c80"
-        self._renderer = Renderer(camera=self._cam, scene = self._scene, controls=[self._orbit], 
+        self._renderer = Renderer(camera=self._cam, scene = self._scene, controls=[self._orbit],
                     width=self.__s["width"], height=self.__s["height"], antialias=self.__s["antialias"])
 
         self.__widgets = []
         self.__objects = {}
         self.__cnt = 0
-        
+
     def __get_shading(self, shading):
         shad = {"flat":True, "wireframe":True, "wire_width": 0.03, "wire_color": "black",
                 "side": 'DoubleSide', "colormap": "viridis", "normalize": [None, None],
-                "bbox": False, "roughness": 0.5, "metalness": 0.25, "reflectivity": 1.0, 
-                "line_width": 1.0, "line_color": "black", "point_color": "red", "point_size": 0.01, 
+                "bbox": False, "roughness": 0.5, "metalness": 0.25, "reflectivity": 1.0,
+                "line_width": 1.0, "line_color": "black", "point_color": "red", "point_size": 0.01,
                 "text_color" : "red"
                }
         for k in shading:
             shad[k] = shading[k]
         return shad
-        
+
     def __update_settings(self, settings={}):
-        sett = {"width": 600, "height": 600, "antialias": True, "scale": 1.5, "background": "#ffffff", 
+        sett = {"width": 600, "height": 600, "antialias": True, "scale": 1.5, "background": "#ffffff",
                 "fov": 30}
         for k in settings:
             sett[k] = settings[k]
         self.__s = sett
-        
+
     def __add_object(self, obj, parent=None):
         if not parent: # Object is added to global scene and objects dict
             self.__objects[self.__cnt] = obj
@@ -73,27 +73,27 @@ class Viewer():
             self._scene.add(obj["mesh"])
         else: # Object is added to parent object and NOT to objects dict
             parent.add(obj["mesh"])
-            
+
         self.__update_view()
         return self.__cnt - 1
-            
-    
+
+
     def __add_line_geometry(self, lines, shading, obj=None):
         lines = lines.astype("float32", copy=False)
         mi = np.min(lines, axis=0)
         ma = np.max(lines, axis=0)
         geometry = BufferGeometry(attributes={'position': BufferAttribute(lines, normalized=False)})
         material = LineBasicMaterial(linewidth=shading["line_width"], color=shading["line_color"])
-                    #, vertexColors='VertexColors'), 
+                    #, vertexColors='VertexColors'),
         lines = LineSegments(geometry=geometry, material=material) #type='LinePieces')
-        line_obj = {"geometry": geometry, "mesh": lines, "material": material, 
+        line_obj = {"geometry": geometry, "mesh": lines, "material": material,
                     "max": ma, "min": mi, "type": "Lines", "wireframe": None}
-        
+
         if obj:
             return self.__add_object(line_obj, obj), line_obj
         else:
             return self.__add_object(line_obj)
-    
+
     def __update_view(self):
         if len(self.__objects) == 0:
             return
@@ -114,7 +114,7 @@ class Viewer():
 
         self._orbit.exec_three_obj_method('update')
         self._cam.exec_three_obj_method('updateProjectionMatrix')
- 
+
     def __get_bbox(self, v):
         m = np.min(v, axis=0)
         M = np.max(v, axis=0)
@@ -146,11 +146,11 @@ class Viewer():
                 coloring = "FaceColors"
                 #print("Face color values")
             if c.shape[0] == v.shape[0]: # vertices
-                colors = c 
+                colors = c
                 #print("Vertex color values")
         elif type(c) == np.ndarray and c.size == f.shape[0]: # Function values for faces
             normalize = sh["normalize"][0] != None and sh["normalize"][1] != None
-            cc = get_colors(c, sh["colormap"], normalize=normalize, 
+            cc = get_colors(c, sh["colormap"], normalize=normalize,
                        vmin=sh["normalize"][0], vmax=sh["normalize"][1])
             #print(cc.shape)
             colors = np.hstack([cc, cc, cc]).reshape((-1, 3))
@@ -158,14 +158,14 @@ class Viewer():
             #print("Face function values")
         elif type(c) == np.ndarray and c.size == v.shape[0]: # Function values for vertices
             normalize = sh["normalize"][0] != None and sh["normalize"][1] != None
-            colors = get_colors(c, sh["colormap"], normalize=normalize, 
+            colors = get_colors(c, sh["colormap"], normalize=normalize,
                        vmin=sh["normalize"][0], vmax=sh["normalize"][1])
             #print("Vertex function values")
         else:
             print("Invalid color array given! Supported are numpy arrays.", type(c))
 
         return colors, coloring
-    
+
     def add_mesh(self, v, f, c=None, uv=None, shading={}):
         sh = self.__get_shading(shading)
         mesh_obj = {}
@@ -179,20 +179,20 @@ class Viewer():
                 f_tmp[i*4+2] = np.array([f[i][1], f[i][2], f[i][3]])
                 f_tmp[i*4+3] = np.array([f[i][2], f[i][0], f[i][3]])
             f = f_tmp
-        
+
         if v.shape[1] == 2:
             v = np.append(v, np.zeros([v.shape[0], 1]), 1)
 
-        
+
         # Type adjustment vertices
         v = v.astype("float32", copy=False)
-        
-        # Color setup        
+
+        # Color setup
         colors, coloring = self.__get_colors(v, f, c, sh)
-            
+
         # Type adjustment faces and colors
         c = colors.astype("float32", copy=False)
-        
+
         # Material and geometry setup
         ba_dict = {"color": BufferAttribute(c)}
         if coloring == "FaceColors":
@@ -206,32 +206,32 @@ class Viewer():
         else:
             f = f.astype("uint32", copy=False).ravel()
             ba_dict["index"] = BufferAttribute(f, normalized=False)
-        
+
         ba_dict["position"] = BufferAttribute(v, normalized=False)
-        
+
         if type(uv) != type(None):
             uv = (uv - np.min(uv)) / (np.max(uv) - np.min(uv))
             tex = DataTexture(data=gen_checkers(20, 20), format="RGBFormat", type="FloatType")
-            material = MeshStandardMaterial(map=tex, reflectivity=sh["reflectivity"], side=sh["side"], 
+            material = MeshStandardMaterial(map=tex, reflectivity=sh["reflectivity"], side=sh["side"],
                     roughness=sh["roughness"], metalness=sh["metalness"], flatShading=sh["flat"],
                     polygonOffset=True, polygonOffsetFactor= 1, polygonOffsetUnits=5)
             ba_dict["uv"] = BufferAttribute(uv.astype("float32", copy=False))
         else:
-            material = MeshStandardMaterial(vertexColors=coloring, reflectivity=sh["reflectivity"], 
-                    side=sh["side"], roughness=sh["roughness"], metalness=sh["metalness"], 
-                    flatShading=sh["flat"], 
+            material = MeshStandardMaterial(vertexColors=coloring, reflectivity=sh["reflectivity"],
+                    side=sh["side"], roughness=sh["roughness"], metalness=sh["metalness"],
+                    flatShading=sh["flat"],
                     polygonOffset=True, polygonOffsetFactor= 1, polygonOffsetUnits=5)
 
         geometry = BufferGeometry(attributes=ba_dict)
-              
+
         if coloring == "VertexColors":
             geometry.exec_three_obj_method('computeVertexNormals')
         else:
             geometry.exec_three_obj_method('computeFaceNormals')
-        
+
         # Mesh setup
         mesh = Mesh(geometry=geometry, material=material)
-        
+
         # Wireframe setup
         mesh_obj["wireframe"] = None
         if sh["wireframe"]:
@@ -240,13 +240,13 @@ class Viewer():
             wireframe = LineSegments(wf_geometry, wf_material)
             mesh.add(wireframe)
             mesh_obj["wireframe"] = wireframe
-        
+
         # Bounding box setup
         if sh["bbox"]:
             v_box, f_box = self.__get_bbox(v)
             _, bbox = self.add_edges(v_box, f_box, sh, mesh)
             mesh_obj["bbox"] = [bbox, v_box, f_box]
-        
+
         # Object setup
         mesh_obj["max"] = np.max(v, axis=0)
         mesh_obj["min"] = np.min(v, axis=0)
@@ -257,21 +257,21 @@ class Viewer():
         mesh_obj["shading"] = sh
         mesh_obj["coloring"] = coloring
         mesh_obj["arrays"] = [v, f, c] # TODO replays with proper storage or remove if not needed
-        
-        return self.__add_object(mesh_obj)    
 
-        
+        return self.__add_object(mesh_obj)
+
+
     def add_lines(self, beginning, ending, shading={}, obj=None):
         if len(beginning.shape) == 1:
             if len(beginning) == 2:
-                beginning = np.array([beginning[0], beginning[1], 0])
+                beginning = np.array([[beginning[0], beginning[1], 0]])
         else:
             if beginning.shape[1] == 2:
                 beginning = np.append(
                     beginning, np.zeros([beginning.shape[0], 1]), 1)
         if len(ending.shape) == 1:
             if len(ending) == 2:
-                ending = np.array([ending[0], ending[1], 0])
+                ending = np.array([[ending[0], ending[1], 0]])
         else:
             if ending.shape[1] == 2:
                 ending = np.append(
@@ -281,7 +281,7 @@ class Viewer():
         lines = np.hstack([beginning, ending])
         lines = lines.reshape((-1, 3))
         return self.__add_line_geometry(lines, sh, obj)
-    
+
     def add_edges(self, vertices, edges, shading={}, obj=None):
         if vertices.shape[1] == 2:
             vertices = np.append(
@@ -293,12 +293,16 @@ class Viewer():
             lines[cnt, :] = vertices[e[0]]
             lines[cnt+1, :] = vertices[e[1]]
             cnt += 2
-        return self.__add_line_geometry(lines, sh, obj)     
+        return self.__add_line_geometry(lines, sh, obj)
 
     def add_points(self, points, shading={}, obj=None):
-        if points.shape[1] == 2:
-            points = np.append(
-                points, np.zeros([points.shape[0], 1]), 1)
+        if len(points.shape) == 1:
+            if len(points) == 2:
+                points = np.array([[points[0], points[1], 0]])
+        else:
+            if points.shape[1] == 2:
+                points = np.append(
+                    points, np.zeros([points.shape[0], 1]), 1)
         sh = self.__get_shading(shading)
         points = points.astype("float32", copy=False)
         mi = np.min(points, axis=0)
@@ -306,9 +310,9 @@ class Viewer():
         geometry = BufferGeometry(attributes={"position": BufferAttribute(points, normalized=False)})
         material = PointsMaterial(color=sh["point_color"], size=sh["point_size"])
         points = Points(geometry=geometry, material=material)
-        point_obj = {"geometry": geometry, "mesh": points, "material": material, 
+        point_obj = {"geometry": geometry, "mesh": points, "material": material,
             "max": ma, "min": mi, "type": "Points", "wireframe": None}
-        
+
         if obj:
             return self.__add_object(point_obj, obj), point_obj
         else:
@@ -321,7 +325,7 @@ class Viewer():
         self._scene.remove(self.__objects[obj_id]["mesh"])
         del self.__objects[obj_id]
         self.__update_view()
-        
+
     def reset(self):
         for obj_id in list(self.__objects.keys()).copy():
             self._scene.remove(self.__objects[obj_id]["mesh"])
@@ -354,21 +358,21 @@ class Viewer():
         #self.mesh.geometry.verticesNeedUpdate = True
         #self.mesh.geometry.elementsNeedUpdate = True
         #self.update()
-    
+
     def update(self):
         self.mesh.exec_three_obj_method('update')
         self.orbit.exec_three_obj_method('update')
         self.cam.exec_three_obj_method('updateProjectionMatrix')
         self.scene.exec_three_obj_method('update')
 
-        
+
     def add_text(self, text, shading={}):
         self.update_shading(shading)
         tt = TextTexture(string=text, color=self.s["text_color"])
         sm = SpriteMaterial(map=tt)
-        self.text = Sprite(material=sm, scaleToTexture=True)    
+        self.text = Sprite(material=sm, scaleToTexture=True)
         self.scene.add(self.text)
-        
+
     #def add_widget(self, widget, callback):
     #    self.widgets.append(widget)
     #    widget.observe(callback, names='value')
@@ -378,7 +382,7 @@ class Viewer():
         self.widgets.append(widget)
         widget.observe(cb, names="value")
         display(widget)
-        
+
     def add_button(self, text, cb):
         button = widgets.Button(description=text)
         self.widgets.append(button)
@@ -423,7 +427,7 @@ def subplot(v, f, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
                     row.append(Output())
                     cnt += 1
                 rows.append(row)
-                
+
             for r in rows:
                 display(HBox(r))
 
