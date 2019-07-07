@@ -1,6 +1,6 @@
 import numpy as np
 import ipywidgets as widgets
-from ipywidgets import HTML, Text, Output, VBox, HBox, interact
+from ipywidgets import HTML, Text, Output, VBox, HBox, interact, embed
 from pythreejs import *
 from IPython.display import display
 import matplotlib.pyplot as plt
@@ -389,12 +389,15 @@ class Viewer():
         button.on_click(cb)
         display(button)
 
-    def launch(self):
+    def launch(self, filename):
+        if filename is not None:
+            embed.embed_minimal_html(filename,views=[self._renderer]+self.__widgets)
+
         display(self._renderer)
         for w in self.__widgets:
             display(w)
 
-def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=False):#, return_id=False):
+def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=False, filename=None):#, return_id=False):
     if not plot:
         view = Viewer(shading)
     else:
@@ -402,7 +405,7 @@ def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=False):#, ret
         view.reset()
     obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading)
     if not plot:
-        view.launch()
+        view.launch(filename)
 
     #if return_plot and return_id:
     #    return view, obj_id
