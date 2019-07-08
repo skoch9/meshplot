@@ -1,0 +1,58 @@
+site_name: meshplot
+site_url: 'https://skoch9.github.io/meshplot/'
+repo_name: 'skoch9/meshplot'
+repo_url: 'https://github.com/skoch9/meshplot'
+site_description: "A simple fast 2d and 3d mesh viewer"
+# strict: true
+docs_dir: 'docs'
+remote_branch: 'gh-pages'
+theme:
+  name: material
+  favicon: 'favicon.ico'
+  logo:
+    icon: ' '
+  palette:
+    primary: 'Orange'
+    accent: 'Deep Orange'
+extra:
+  social:
+    - type: 'github'
+      link: 'https://github.com/skoch9/meshplot'
+markdown_extensions:
+  - codehilite
+  - footnotes
+  - admonition
+  - toc:
+      permalink: true
+  - markdown.extensions.smarty
+  - markdown.extensions.toc:
+      permalink: true
+  - pymdownx.arithmatex
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      repo_url_shortener: true
+      user: meshplot
+      repo: meshplot
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+plugins:
+  - mknotebooks:
+      execute: true
+      preamble: "docs/plot_to_md.py"
+      timeout: -1
+extra_javascript:
+  - 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML'
+nav:
+  - Home: index.md
+  - Jupyter tutorial: tutorial.ipynb
+  - Docs: meshplot_docs.md
