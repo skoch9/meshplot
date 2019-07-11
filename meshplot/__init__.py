@@ -394,40 +394,40 @@ class Viewer():
         for w in self.__widgets:
             display(w)
 
-    def to_html(self):
-        data = embed.embed_data(views=[self._renderer]+self.__widgets)
+#    def to_html(self):
+#        data = embed.embed_data(views=[self._renderer]+self.__widgets)
 
-        manager_state = json.dumps(data['manager_state'])
-        widget_views = [json.dumps(view) for view in data['view_specs']]
+#        manager_state = json.dumps(data['manager_state'])
+#        widget_views = [json.dumps(view) for view in data['view_specs']]
 
-        html = ""
-        html += '<!-- Load RequireJS, used by the IPywidgets for dependency management -->\n'
-        html += '<script\n'
-        html += '  src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"\n'
-        html += '  integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA="\n'
-        html += '  crossorigin="anonymous">\n'
-        html += '</script>\n'
-        html += '\n'
-        html += '<!-- Load IPywidgets bundle for embedding. -->\n'
-        html += '<script\n'
-        html += '  data-jupyter-widgets-cdn="https://cdn.jsdelivr.net/npm/"\n'
-        html += '  src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js"\n'
-        html += '  crossorigin="anonymous">\n'
-        html += '</script>\n'
-        html += '\n'
-        html += '<!-- The state of all the widget models on the page -->\n'
-        html += '<script type="application/vnd.jupyter.widget-state+json">\n'
-        html += manager_state + '\n'
-        html += '</script>\n'
-        html += '\n'
-        for w in widget_views:
-            html += '<div id="first-slider-widget">\n'
-            html += '  <script type="application/vnd.jupyter.widget-view+json">\n'
-            html += w + '\n'
-            html += '  </script>\n'
-            html += '</div>\n'
+#        html = ""
+#        html += '<!-- Load RequireJS, used by the IPywidgets for dependency management -->\n'
+#        html += '<script\n'
+#        html += '  src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"\n'
+#        html += '  integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA="\n'
+#        html += '  crossorigin="anonymous">\n'
+#        html += '</script>\n'
+#        html += '\n'
+#        html += '<!-- Load IPywidgets bundle for embedding. -->\n'
+#        html += '<script\n'
+#        html += '  data-jupyter-widgets-cdn="https://cdn.jsdelivr.net/npm/"\n'
+#        html += '  src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js"\n'
+#        html += '  crossorigin="anonymous">\n'
+#        html += '</script>\n'
+#        html += '\n'
+#        html += '<!-- The state of all the widget models on the page -->\n'
+#        html += '<script type="application/vnd.jupyter.widget-state+json">\n'
+#        html += manager_state + '\n'
+#        html += '</script>\n'
+#        html += '\n'
+#        for w in widget_views:
+#            html += '<div id="first-slider-widget">\n'
+#            html += '  <script type="application/vnd.jupyter.widget-view+json">\n'
+#            html += w + '\n'
+#            html += '  </script>\n'
+#            html += '</div>\n'
 
-        return html
+#        return html
 
 
 def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=False):#, return_id=False):
