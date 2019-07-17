@@ -5,6 +5,8 @@ from pythreejs import *
 from IPython.display import display
 import matplotlib.pyplot as plt
 
+rendertype = "JUPYTER" # "STATIC"
+
 # Helper functions
 def get_colors(inp, colormap="viridis", normalize=True, vmin=None, vmax=None):
     colormap = plt.cm.get_cmap(colormap)
@@ -31,6 +33,18 @@ def gen_checkers(n_checkers_x, n_checkers_y, width=256, height=256):
             else:
                 array[x, y, :] = [ 0., 0., 0. ]
     return array
+
+def is_notebook():
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == 'ZMQInteractiveShell':
+            return True   # Jupyter notebook or qtconsole
+        elif shell == 'TerminalInteractiveShell':
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False      # Probably standard Python interpreter
 
 class Viewer():
     def __init__(self, settings):
@@ -394,40 +408,32 @@ class Viewer():
         for w in self.__widgets:
             display(w)
 
-#    def to_html(self):
-#        data = embed.embed_data(views=[self._renderer]+self.__widgets)
+    def to_html(self, imports=True, html_frame=True):
+        state = embed.dependency_state(self._renderer)
 
-#        manager_state = json.dumps(data['manager_state'])
-#        widget_views = [json.dumps(view) for view in data['view_specs']]
+        # Somehow these entries are missing when the state is exported in python. 
+        # Exporting from the GUI works, so we are inserting the missing entries.
+        for k in state:
+            if state[k]["model_name"] == "OrbitControlsModel":
+                state[k]["state"]["maxAzimuthAngle"] = "inf"
+                state[k]["state"]["maxDistance"]= "inf"
+                state[k]["state"]["maxZoom"]= "inf"
+                state[k]["state"]["minAzimuthAngle"] = "-inf"
 
-#        html = ""
-#        html += '<!-- Load RequireJS, used by the IPywidgets for dependency management -->\n'
-#        html += '<script\n'
-#        html += '  src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"\n'
-#        html += '  integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA="\n'
-#        html += '  crossorigin="anonymous">\n'
-#        html += '</script>\n'
-#        html += '\n'
-#        html += '<!-- Load IPywidgets bundle for embedding. -->\n'
-#        html += '<script\n'
-#        html += '  data-jupyter-widgets-cdn="https://cdn.jsdelivr.net/npm/"\n'
-#        html += '  src="https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js"\n'
-#        html += '  crossorigin="anonymous">\n'
-#        html += '</script>\n'
-#        html += '\n'
-#        html += '<!-- The state of all the widget models on the page -->\n'
-#        html += '<script type="application/vnd.jupyter.widget-state+json">\n'
-#        html += manager_state + '\n'
-#        html += '</script>\n'
-#        html += '\n'
-#        for w in widget_views:
-#            html += '<div id="first-slider-widget">\n'
-#            html += '  <script type="application/vnd.jupyter.widget-view+json">\n'
-#            html += w + '\n'
-#            html += '  </script>\n'
-#            html += '</div>\n'
+        tpl = embed.load_requirejs_template
+        if not imports:
+            embed.load_requirejs_template = ""
 
-#        return html
+        s = embed.embed_snippet(self._renderer, state=state)
+        embed.load_requirejs_template = tpl
+
+#        import uuid
+#        uid = uuid.uuid4()
+
+#        if html_frame:
+#            with open("%s.html"%uid, "w") as f:
+#                f.write("<html>\n<body>\n"+s+"\n</body>\n</html>")
+        return s
 
 
 def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=False):#, return_id=False):
@@ -437,12 +443,17 @@ def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=False):#, ret
         view = plot
         view.reset()
     obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading)
-    if not plot:
-        view.launch()
+#    if not plot:
+#        view.launch()
+    if not plot and rendertype == "JUPYTER":
+        display(view._renderer)
+#        for w in self.__widgets:
+#            display(w)
 
     #if return_plot and return_id:
     #    return view, obj_id
-    if return_plot:# and not return_id:
+    #if return_plot:# and not return_id:
+    if return_plot or rendertype == "STATIC":
         return view
 
 def subplot(v, f, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
