@@ -3,9 +3,13 @@ import ipywidgets as widgets
 from ipywidgets import HTML, Text, Output, VBox, HBox, interact, embed
 from pythreejs import *
 from IPython.display import display
+import logging
+mpl_logger = logging.getLogger('matplotlib')
+mpl_logger.setLevel(logging.WARNING) 
 import matplotlib.pyplot as plt
+import uuid
 
-rendertype = "JUPYTER" # "STATIC"
+rendertype = "JUPYTER" # "OFFLINE"
 
 # Helper functions
 def get_colors(inp, colormap="viridis", normalize=True, vmin=None, vmax=None):
@@ -427,16 +431,12 @@ class Viewer():
         s = embed.embed_snippet(self._renderer, state=state)
         embed.load_requirejs_template = tpl
 
-#        import uuid
-#        uid = uuid.uuid4()
-
-#        if html_frame:
-#            with open("%s.html"%uid, "w") as f:
-#                f.write("<html>\n<body>\n"+s+"\n</body>\n</html>")
+        if html_frame:
+            s = "<html>\n<body>\n" + s + "\n</body>\n</html>"
         return s
 
 
-def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=False):#, return_id=False):
+def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=True, filename=""):#, return_id=False):
     if not plot:
         view = Viewer(shading)
     else:
@@ -449,11 +449,20 @@ def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=False):#, ret
         display(view._renderer)
 #        for w in self.__widgets:
 #            display(w)
+    if rendertype == "OFFLINE":
+        if filename == "":
+            uid = str(uuid.uuid4()) + ".html"
+        else:
+            filename = filename.replace(".html", "")
+            uid = filename + '.html'
+        with open(uid, "w") as f:
+            f.write(view.to_html())
+        print("Plot saved to file %s."%uid)
 
     #if return_plot and return_id:
     #    return view, obj_id
     #if return_plot:# and not return_id:
-    if return_plot or rendertype == "STATIC":
+    if return_plot or rendertype == "OFFLINE":
         return view
 
 def subplot(v, f, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
