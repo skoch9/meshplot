@@ -83,7 +83,7 @@ def plot(v, f=None, c=None, uv=None, shading={}, plot=None, return_plot=False, f
     if return_plot or rendertype == "OFFLINE":
         return view
 
-def subplot(v, f, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
+def subplot(v, f=None, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
     shading["width"] = 400
     shading["height"] = 400
     view = Viewer(shading)
