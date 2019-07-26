@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="meshplot",
-    version="0.3.0",
+    version="0.3.2",
     author="Sebastian Koch",
     author_email="",
     description="Interactive Plotting of 3D Triangle Meshes",

@@ -54,7 +54,7 @@ class Viewer():
         from .plot import rendertype
         if rendertype == "JUPYTER":
             return self.__cnt - 1
-        else:
+        elif rendertype == "WEBSITE":
             return self
 
 
@@ -389,7 +389,7 @@ class Viewer():
         #self.mesh.geometry.elementsNeedUpdate = True
         #self.update()
         from .plot import rendertype
-        if rendertype == "OFFLINE":
+        if rendertype == "WEBSITE":
             return self
 
 #    def update(self):

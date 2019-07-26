@@ -2,9 +2,19 @@ import meshplot
 import json
 
 first = True
-meshplot.rendertype = "STATIC"
+meshplot.website()
 
 def mp_to_md(self):
+    global first
+    if first:
+        first = False
+        res = self.to_html(imports=True, html_frame=False)
+    else:
+        res = self.to_html(imports=False, html_frame=False)
+
+    return res
+
+def sp_to_md(self):
     global first
     if first:
         first = False
@@ -22,4 +32,5 @@ def lis_to_md(self):
     return res
 
 get_ipython().display_formatter.formatters["text/html"].for_type(meshplot.Viewer, mp_to_md)
+get_ipython().display_formatter.formatters["text/html"].for_type(meshplot.Subplot, sp_to_md)
 #get_ipython().display_formatter.formatters["text/html"].for_type(list, lis_to_md)

@@ -12,6 +12,10 @@ def offline():
     global rendertype
     rendertype = "OFFLINE"
 
+def website():
+    global rendertype
+    rendertype = "WEBSITE"
+
 class Subplot():
     def __init__(self, data, view, s):
         if data == None:
@@ -32,12 +36,14 @@ class Subplot():
 
                 for r in self.rows:
                     hbox = HBox(r)
-                    display(hbox)
+                    if rendertype == "JUPYTER":
+                        display(hbox)
                     self.hboxes.append(hbox)
 
             out = self.rows[int(s[2]/s[1])][s[2]%s[1]]
-            with out:
-                display(view._renderer)
+            if rendertype == "JUPYTER":
+                with out:
+                    display(view._renderer)
             self.rows[int(s[2]/s[1])][s[2]%s[1]] = view
             
     def save(self, filename=""):
@@ -59,7 +65,16 @@ class Subplot():
         with open(uid, "w") as f:
             f.write(s)
         print("Plot saved to file %s."%uid)  
-            
+
+    def to_html(self, imports=True, html_frame=True):
+        s = ""
+        for r in self.rows:
+            for v in r:
+                s1 = v.to_html(imports=imports, html_frame=html_frame)
+                s = s + s1
+                imports = False
+
+        return s
 
 def plot(v, f=None, c=None, uv=None, shading={}, plot=None, return_plot=False, filename=""):#, return_id=False):
     if not plot:
@@ -80,7 +95,7 @@ def plot(v, f=None, c=None, uv=None, shading={}, plot=None, return_plot=False, f
     if rendertype == "OFFLINE":
         view.save(filename)
 
-    if return_plot or rendertype == "OFFLINE":
+    if return_plot or rendertype == "WEBSITE":
         return view
 
 def subplot(v, f=None, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
@@ -95,5 +110,5 @@ def subplot(v, f=None, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
         obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading)
         
     subplot = Subplot(data, view, s)
-    if data == None or rendertype == "OFFLINE":
+    if data == None or rendertype == "WEBSITE":
         return subplot
