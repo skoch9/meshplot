@@ -7,6 +7,7 @@ import logging
 mpl_logger = logging.getLogger('matplotlib')
 mpl_logger.setLevel(logging.WARNING) 
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import uuid
 
 rendertype = "JUPYTER" # "OFFLINE"
@@ -38,6 +39,16 @@ def gen_checkers(n_checkers_x, n_checkers_y, width=256, height=256):
                 array[x, y, :] = [ 0., 0., 0. ]
     return array
 
+def gen_circle(width=256, height=256):
+    xx, yy = np.mgrid[:width, :height]
+    circle = (xx - width/2 + 0.5) ** 2 + (yy - height/2 + 0.5) ** 2
+    array = np.ones((width, height, 4), dtype='float32')
+    array[:, :, 0] = (circle <= width)
+    array[:, :, 1] = (circle <= width)
+    array[:, :, 2] = (circle <= width)
+    array[:, :, 3] = circle <= width
+    return array
+
 def is_notebook():
     try:
         shell = get_ipython().__class__.__name__
@@ -67,10 +78,11 @@ class Viewer():
         self.__cnt = 0
 
     def __get_shading(self, shading):
-        shad = {"flat":True, "wireframe":True, "wire_width": 0.03, "wire_color": "black",
+        shad = {"flat":True, "wireframe":False, "wire_width": 0.03, "wire_color": "black",
                 "side": 'DoubleSide', "colormap": "viridis", "normalize": [None, None],
                 "bbox": False, "roughness": 0.5, "metalness": 0.25, "reflectivity": 1.0,
-                "line_width": 1.0, "line_color": "black", "point_color": "red", "point_size": 0.01,
+                "line_width": 1.0, "line_color": "black", 
+                "point_color": "red", "point_size": 0.01, "point_shape": "circle",
                 "text_color" : "red"
                }
         for k in shading:
@@ -147,12 +159,7 @@ class Viewer():
 
     def __get_colors(self, v, f, c, sh):
         coloring = "VertexColors"
-        if type(c) == type(None): # No color
-            colors = np.ones_like(v)
-            colors[:, 1] = 0.874
-            colors[:, 2] = 0.0
-            #print("No color")
-        elif type(c) == np.ndarray and c.size == 3: # Single color
+        if type(c) == np.ndarray and c.size == 3: # Single color
             colors = np.ones_like(v)
             colors[:, 0] = c[0]
             colors[:, 1] = c[1]
@@ -163,9 +170,14 @@ class Viewer():
                 colors = np.hstack([c, c, c]).reshape((-1, 3))
                 coloring = "FaceColors"
                 #print("Face color values")
-            if c.shape[0] == v.shape[0]: # vertices
+            elif c.shape[0] == v.shape[0]: # vertices
                 colors = c
                 #print("Vertex color values")
+            else: # Wrong size, fallback
+                print("Invalid color array given! Supported are numpy arrays.", type(c))
+                colors = np.ones_like(v)
+                colors[:, 1] = 0.874
+                colors[:, 2] = 0.0
         elif type(c) == np.ndarray and c.size == f.shape[0]: # Function values for faces
             normalize = sh["normalize"][0] != None and sh["normalize"][1] != None
             cc = get_colors(c, sh["colormap"], normalize=normalize,
@@ -180,9 +192,39 @@ class Viewer():
                        vmin=sh["normalize"][0], vmax=sh["normalize"][1])
             #print("Vertex function values")
         else:
-            print("Invalid color array given! Supported are numpy arrays.", type(c))
+            colors = np.ones_like(v)
+            colors[:, 1] = 0.874
+            colors[:, 2] = 0.0
+
+            if type(c) != type(None): # No color
+                print("Invalid color array given! Supported are numpy arrays.", type(c))
 
         return colors, coloring
+
+    def __get_point_colors(self, v, c, sh):
+        v_color = True
+        if type(c) == type(None): # No color given, use global color
+            #conv = mpl.colors.ColorConverter()
+            colors = sh["point_color"]#np.array(conv.to_rgb(sh["point_color"]))
+            v_color = False
+        elif type(c) == str: # No color given, use global color
+            #conv = mpl.colors.ColorConverter()
+            colors = c#np.array(conv.to_rgb(c))
+            v_color = False
+        elif type(c) == np.ndarray and len(c.shape) == 2 and c.shape[1] == 3 and c.shape[0] == v.shape[0]: # Point color
+            colors = c.astype("float32", copy=False)
+        elif type(c) == np.ndarray and c.size == v.shape[0]: # Function color
+            normalize = sh["normalize"][0] != None and sh["normalize"][1] != None
+            colors = get_colors(c, sh["colormap"], normalize=normalize,
+                       vmin=sh["normalize"][0], vmax=sh["normalize"][1])
+            colors = colors.astype("float32", copy=False)
+            #print("Vertex function values")
+        else:
+            print("Invalid color array given! Supported are numpy arrays.", type(c))
+            colors = sh["point_color"]
+            v_color = False
+
+        return colors, v_color
 
     def add_mesh(self, v, f, c=None, uv=None, shading={}):
         sh = self.__get_shading(shading)
@@ -313,7 +355,7 @@ class Viewer():
             cnt += 2
         return self.__add_line_geometry(lines, sh, obj)
 
-    def add_points(self, points, shading={}, obj=None):
+    def add_points(self, points, c=None, shading={}, obj=None):
         if len(points.shape) == 1:
             if len(points) == 2:
                 points = np.array([[points[0], points[1], 0]])
@@ -325,8 +367,28 @@ class Viewer():
         points = points.astype("float32", copy=False)
         mi = np.min(points, axis=0)
         ma = np.max(points, axis=0)
-        geometry = BufferGeometry(attributes={"position": BufferAttribute(points, normalized=False)})
-        material = PointsMaterial(color=sh["point_color"], size=sh["point_size"])
+        
+        g_attributes = {"position": BufferAttribute(points, normalized=False)}
+        m_attributes = {"size": sh["point_size"]}
+
+        if sh["point_shape"] == "circle": # Plot circles
+            tex = DataTexture(data=gen_circle(16, 16), format="RGBAFormat", type="FloatType")
+            m_attributes["map"] = tex
+            m_attributes["alphaTest"] = 0.5
+            m_attributes["transparency"] = True
+        else: # Plot squares
+            pass
+
+        colors, v_colors = self.__get_point_colors(points, c, sh)
+        if v_colors: # Colors per point
+            m_attributes["vertexColors"] = 'VertexColors'
+            g_attributes["color"] = BufferAttribute(colors, normalized=False)
+
+        else: # Colors for all points
+            m_attributes["color"] = colors
+
+        material = PointsMaterial(**m_attributes)
+        geometry = BufferGeometry(attributes=g_attributes)
         points = Points(geometry=geometry, material=material)
         point_obj = {"geometry": geometry, "mesh": points, "material": material,
             "max": ma, "min": mi, "type": "Points", "wireframe": None}
@@ -397,22 +459,41 @@ class Viewer():
 
     def add_dropdown(self, options, default, desc, cb):
         widget = widgets.Dropdown(options=options, value=default, description=desc)
-        self.widgets.append(widget)
+        self.__widgets.append(widget)
         widget.observe(cb, names="value")
         display(widget)
 
     def add_button(self, text, cb):
         button = widgets.Button(description=text)
-        self.widgets.append(button)
+        self.__widgets.append(button)
         button.on_click(cb)
         display(button)
 
-    def launch(self):
-        display(self._renderer)
-        for w in self.__widgets:
-            display(w)
 
     def to_html(self, imports=True, html_frame=True):
+        # Bake positions (fixes centering bug in offline rendering)
+        if len(self.__objects) == 0:
+            return
+        ma = np.zeros((len(self.__objects), 3))
+        mi = np.zeros((len(self.__objects), 3))
+        for r, obj in enumerate(self.__objects):
+            ma[r] = self.__objects[obj]["max"]
+            mi[r] = self.__objects[obj]["min"]
+        ma = np.max(ma, axis=0)
+        mi = np.min(mi, axis=0)
+        diag = np.linalg.norm(ma-mi)
+        mean = (ma - mi) / 2 + mi
+        for r, obj in enumerate(self.__objects):
+            v = self.__objects[obj]["geometry"].attributes["position"].array
+            v -= mean
+
+        scale = self.__s["scale"] * (diag)
+        self._orbit.target = [0.0, 0.0, 0.0]
+        self._cam.lookAt([0.0, 0.0, 0.0])
+        self._cam.position = [0.0, 0.0, scale]
+        self._light.position = [0.0, 0.0, scale]
+        
+
         state = embed.dependency_state(self._renderer)
 
         # Somehow these entries are missing when the state is exported in python. 
@@ -429,39 +510,98 @@ class Viewer():
             embed.load_requirejs_template = ""
 
         s = embed.embed_snippet(self._renderer, state=state)
+        #s = embed.embed_snippet(self.__w, state=state)
         embed.load_requirejs_template = tpl
 
         if html_frame:
             s = "<html>\n<body>\n" + s + "\n</body>\n</html>"
+
+        # Revert changes
+        for r, obj in enumerate(self.__objects):
+            v = self.__objects[obj]["geometry"].attributes["position"].array
+            v += mean
+        self.__update_view()
+        
         return s
-
-
-def plot(v, f, c=None, uv=None, shading={}, plot=None, return_plot=True, filename=""):#, return_id=False):
-    if not plot:
-        view = Viewer(shading)
-    else:
-        view = plot
-        view.reset()
-    obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading)
-#    if not plot:
-#        view.launch()
-    if not plot and rendertype == "JUPYTER":
-        display(view._renderer)
-#        for w in self.__widgets:
-#            display(w)
-    if rendertype == "OFFLINE":
+    
+    def save(self, filename):
         if filename == "":
             uid = str(uuid.uuid4()) + ".html"
         else:
             filename = filename.replace(".html", "")
             uid = filename + '.html'
         with open(uid, "w") as f:
-            f.write(view.to_html())
-        print("Plot saved to file %s."%uid)
+            f.write(self.to_html())
+        print("Plot saved to file %s."%uid)    
+        
+class Subplot():
+    def __init__(self, data, view, s):
+        if data == None:
+            self.rows = []
+            self.hboxes = []
+        else:
+            self.rows = data.rows
+            
+        if s[0] != 1 or s[1] != 1:
+            if data == None: # Intialize subplot array
+                cnt = 0
+                for r in range(s[0]):
+                    row = []
+                    for c in range(s[1]):
+                        row.append(Output())
+                        cnt += 1
+                    self.rows.append(row)
 
-    #if return_plot and return_id:
-    #    return view, obj_id
-    #if return_plot:# and not return_id:
+                for r in self.rows:
+                    hbox = HBox(r)
+                    display(hbox)
+                    self.hboxes.append(hbox)
+
+            out = self.rows[int(s[2]/s[1])][s[2]%s[1]]
+            with out:
+                display(view._renderer)
+            self.rows[int(s[2]/s[1])][s[2]%s[1]] = view
+            
+    def save(self, filename):
+        if filename == "":
+            uid = str(uuid.uuid4()) + ".html"
+        else:
+            filename = filename.replace(".html", "")
+            uid = filename + '.html'
+        
+        s = ""
+        imports = True
+        for r in self.rows:
+            for v in r:
+                s1 = v.to_html(imports=imports, html_frame=False)
+                s = s + s1
+                imports = False
+            
+        s = "<html>\n<body>\n" + s + "\n</body>\n</html>"
+        with open(uid, "w") as f:
+            f.write(s)
+        print("Plot saved to file %s."%uid)  
+            
+
+def plot(v, f=None, c=None, uv=None, shading={}, plot=None, return_plot=True, filename=""):#, return_id=False):
+    if not plot:
+        view = Viewer(shading)
+    else:
+        view = plot
+        view.reset()
+    if type(f) == type(None): # Plot pointcloud
+        obj_id = view.add_points(v, c, shading=shading)
+    elif type(f) == np.ndarray and len(f.shape) == 2 and f.shape[1] == 2: # Plot edges
+        obj_id = view.add_edges(v, f, shading=shading)
+    else: # Plot mesh
+        obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading)
+
+    if not plot and rendertype == "JUPYTER":
+        display(view._renderer)
+
+    if rendertype == "OFFLINE":
+        view.save(filename)
+
     if return_plot or rendertype == "OFFLINE":
         return view
 
@@ -469,28 +609,13 @@ def subplot(v, f, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
     shading["width"] = 400
     shading["height"] = 400
     view = Viewer(shading)
-    view.add_mesh(v, f, c, uv=uv, shading=shading)
+    if type(f) == type(None): # Plot pointcloud
+        obj_id = view.add_points(v, c, shading=shading)
+    elif type(f) == np.ndarray and len(f.shape) == 2 and f.shape[1] == 2: # Plot edges
+        obj_id = view.add_edges(v, f, shading=shading)
+    else: # Plot mesh
+        obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading)
+        
+    subplot = Subplot(data, view, s)
     if data == None:
-        rows = []
-    else:
-        rows = data
-    if s[0] != 1 or s[1] != 1:
-        if data == None: # Intialize subplot array
-            cnt = 0
-            for r in range(s[0]):
-                row = []
-                for c in range(s[1]):
-                    row.append(Output())
-                    cnt += 1
-                rows.append(row)
-
-            for r in rows:
-                display(HBox(r))
-
-        out = rows[int(s[2]/s[1])][s[2]%s[1]]
-        with out:
-            display(view._renderer)
-        rows[int(s[2]/s[1])][s[2]%s[1]] = view
-    if data == None:
-        return rows
-
+        return subplot

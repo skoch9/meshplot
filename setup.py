@@ -1,4 +1,4 @@
-
+import setuptools
 from setuptools import setup
 
 
@@ -8,17 +8,18 @@ with open("README.md", "r") as fh:
 
 setup(
     name="meshplot",
-    version="0.1",
+    version="0.3.0",
     author="Sebastian Koch",
     author_email="",
-    description="Plotting 3D triangle meshes",
+    description="Interactive Plotting of 3D Triangle Meshes",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/skoch9/meshplot/",
-    packages=['meshplot'],
+    packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MPL-2.0 License"
+        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+        "Operating System :: OS Independent",
     ],
     test_suite="test"
 )
