@@ -27,7 +27,7 @@ class Viewer():
         shad = {"flat":True, "wireframe":False, "wire_width": 0.03, "wire_color": "black",
                 "side": 'DoubleSide', "colormap": "viridis", "normalize": [None, None],
                 "bbox": False, "roughness": 0.5, "metalness": 0.25, "reflectivity": 1.0,
-                "line_width": 1.0, "line_color": "black", 
+                "line_width": 1.0, "line_color": "black",
                 "point_color": "red", "point_size": 0.01, "point_shape": "circle",
                 "text_color" : "red"
                }
@@ -176,7 +176,7 @@ class Viewer():
 
         return colors, v_color
 
-    def add_mesh(self, v, f, c=None, uv=None, shading={}):
+    def add_mesh(self, v, f, c=None, uv=None, shading={}, texture_data=None):
         sh = self.__get_shading(shading)
         mesh_obj = {}
 
@@ -221,7 +221,9 @@ class Viewer():
 
         if type(uv) != type(None):
             uv = (uv - np.min(uv)) / (np.max(uv) - np.min(uv))
-            tex = p3s.DataTexture(data=gen_checkers(20, 20), format="RGBFormat", type="FloatType")
+            if texture_data is None:
+                texture_data = gen_checkers(20, 20)
+            tex = p3s.DataTexture(data=texture_data, format="RGBFormat", type="FloatType")
             material = p3s.MeshStandardMaterial(map=tex, reflectivity=sh["reflectivity"], side=sh["side"],
                     roughness=sh["roughness"], metalness=sh["metalness"], flatShading=sh["flat"],
                     polygonOffset=True, polygonOffsetFactor= 1, polygonOffsetUnits=5)
@@ -317,7 +319,7 @@ class Viewer():
         points = points.astype("float32", copy=False)
         mi = np.min(points, axis=0)
         ma = np.max(points, axis=0)
-        
+
         g_attributes = {"position": p3s.BufferAttribute(points, normalized=False)}
         m_attributes = {"size": sh["point_size"]}
 
@@ -445,11 +447,11 @@ class Viewer():
         self._cam.lookAt([0.0, 0.0, 0.0])
         self._cam.position = [0.0, 0.0, scale]
         self._light.position = [0.0, 0.0, scale]
-        
+
 
         state = embed.dependency_state(self._renderer)
 
-        # Somehow these entries are missing when the state is exported in python. 
+        # Somehow these entries are missing when the state is exported in python.
         # Exporting from the GUI works, so we are inserting the missing entries.
         for k in state:
             if state[k]["model_name"] == "OrbitControlsModel":
@@ -474,9 +476,9 @@ class Viewer():
             v = self.__objects[obj]["geometry"].attributes["position"].array
             v += mean
         self.__update_view()
-        
+
         return s
-    
+
     def save(self, filename=""):
         if filename == "":
             uid = str(uuid.uuid4()) + ".html"
@@ -485,4 +487,4 @@ class Viewer():
             uid = filename + '.html'
         with open(uid, "w") as f:
             f.write(self.to_html())
-        print("Plot saved to file %s."%uid)    
+        print("Plot saved to file %s."%uid)

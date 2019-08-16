@@ -23,7 +23,7 @@ class Subplot():
             self.hboxes = []
         else:
             self.rows = data.rows
-            
+
         if s[0] != 1 or s[1] != 1:
             if data == None: # Intialize subplot array
                 cnt = 0
@@ -45,14 +45,14 @@ class Subplot():
                 with out:
                     display(view._renderer)
             self.rows[int(s[2]/s[1])][s[2]%s[1]] = view
-            
+
     def save(self, filename=""):
         if filename == "":
             uid = str(uuid.uuid4()) + ".html"
         else:
             filename = filename.replace(".html", "")
             uid = filename + '.html'
-        
+
         s = ""
         imports = True
         for r in self.rows:
@@ -60,11 +60,11 @@ class Subplot():
                 s1 = v.to_html(imports=imports, html_frame=False)
                 s = s + s1
                 imports = False
-            
+
         s = "<html>\n<body>\n" + s + "\n</body>\n</html>"
         with open(uid, "w") as f:
             f.write(s)
-        print("Plot saved to file %s."%uid)  
+        print("Plot saved to file %s."%uid)
 
     def to_html(self, imports=True, html_frame=True):
         s = ""
@@ -76,7 +76,7 @@ class Subplot():
 
         return s
 
-def plot(v, f=None, c=None, uv=None, shading={}, plot=None, return_plot=False, filename=""):#, return_id=False):
+def plot(v, f=None, c=None, uv=None, shading={}, plot=None, return_plot=False, filename="", texture_data=None):#, return_id=False):
     if not plot:
         view = Viewer(shading)
     else:
@@ -87,7 +87,7 @@ def plot(v, f=None, c=None, uv=None, shading={}, plot=None, return_plot=False, f
     elif type(f) == np.ndarray and len(f.shape) == 2 and f.shape[1] == 2: # Plot edges
         obj_id = view.add_edges(v, f, shading=shading)
     else: # Plot mesh
-        obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading)
+        obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading, texture_data=texture_data)
 
     if not plot and rendertype == "JUPYTER":
         display(view._renderer)
@@ -98,7 +98,7 @@ def plot(v, f=None, c=None, uv=None, shading={}, plot=None, return_plot=False, f
     if return_plot or rendertype == "WEBSITE":
         return view
 
-def subplot(v, f=None, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
+def subplot(v, f=None, c=None, uv=None, shading={}, s=[1, 1, 0], data=None, texture_data=None):
     shading["width"] = 400
     shading["height"] = 400
     view = Viewer(shading)
@@ -107,8 +107,8 @@ def subplot(v, f=None, c=None, uv=None, shading={}, s=[1, 1, 0], data=None):
     elif type(f) == np.ndarray and len(f.shape) == 2 and f.shape[1] == 2: # Plot edges
         obj_id = view.add_edges(v, f, shading=shading)
     else: # Plot mesh
-        obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading)
-        
+        obj_id = view.add_mesh(v, f, c, uv=uv, shading=shading, texture_data=texture_data)
+
     subplot = Subplot(data, view, s)
     if data == None or rendertype == "WEBSITE":
         return subplot
