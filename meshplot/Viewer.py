@@ -176,7 +176,7 @@ class Viewer():
 
         return colors, v_color
 
-    def add_mesh(self, v, f, c=None, uv=None, shading={}, texture_data=None):
+    def add_mesh(self, v, f, c=None, uv=None, n=None, shading={}, texture_data=None):
         sh = self.__get_shading(shading)
         mesh_obj = {}
 
@@ -234,11 +234,14 @@ class Viewer():
                     flatShading=sh["flat"],
                     polygonOffset=True, polygonOffsetFactor= 1, polygonOffsetUnits=5)
 
+        if type(n) != type(None) and coloring == "VertexColors": # TODO: properly handle normals for FaceColors as well
+            ba_dict["normal"] = p3s.BufferAttribute(n.astype("float32", copy=False), normalized=True)
+
         geometry = p3s.BufferGeometry(attributes=ba_dict)
 
-        if coloring == "VertexColors":
+        if coloring == "VertexColors" and type(n) == type(None):
             geometry.exec_three_obj_method('computeVertexNormals')
-        else:
+        elif coloring == "FaceColors" and type(n) == type(None):
             geometry.exec_three_obj_method('computeFaceNormals')
 
         # Mesh setup
@@ -371,7 +374,7 @@ class Viewer():
             obj["geometry"].attributes["position"].array = v
             #self.wireframe.attributes["position"].array = v # Wireframe updates?
             obj["geometry"].attributes["position"].needsUpdate = True
-            obj["geometry"].exec_three_obj_method('computeVertexNormals')
+#            obj["geometry"].exec_three_obj_method('computeVertexNormals')
         if type(colors) != type(None):
             colors, coloring = self.__get_colors(obj["arrays"][0], obj["arrays"][1], colors, obj["shading"])
             colors = colors.astype("float32", copy=False)
@@ -386,7 +389,7 @@ class Viewer():
             obj["geometry"].attributes["index"].array = f
             #self.wireframe.attributes["position"].array = v # Wireframe updates?
             obj["geometry"].attributes["index"].needsUpdate = True
-            obj["geometry"].exec_three_obj_method('computeVertexNormals')
+#            obj["geometry"].exec_three_obj_method('computeVertexNormals')
         #self.mesh.geometry.verticesNeedUpdate = True
         #self.mesh.geometry.elementsNeedUpdate = True
         #self.update()
