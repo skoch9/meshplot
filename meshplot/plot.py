@@ -98,7 +98,7 @@ def plot(v, f=None, c=None, uv=None, n=None, shading={}, plot=None, return_plot=
     if return_plot or rendertype == "WEBSITE":
         return view
 
-def subplot(v, f=None, c=None, uv=None, shading={}, s=[1, 1, 0], data=None, texture_data=None):
+def subplot(v, f=None, c=None, uv=None, n=None, shading={}, s=[1, 1, 0], data=None, texture_data=None):
     shading["width"] = 400
     shading["height"] = 400
     view = Viewer(shading)
