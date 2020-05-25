@@ -76,7 +76,7 @@ class Subplot():
 
         return s
 
-def plot(v, f=None, c=None, uv=None, n=None, shading={}, plot=None, return_plot=False, filename="", texture_data=None):#, return_id=False):
+def plot(v, f=None, c=None, uv=None, n=None, shading={}, plot=None, return_plot=True, filename="", texture_data=None):#, return_id=False):
     if not plot:
         view = Viewer(shading)
     else:

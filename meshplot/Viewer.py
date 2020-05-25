@@ -126,6 +126,7 @@ class Viewer():
             else: # Wrong size, fallback
                 print("Invalid color array given! Supported are numpy arrays.", type(c))
                 colors = np.ones_like(v)
+                colors[:, 0] = 1.0
                 colors[:, 1] = 0.874
                 colors[:, 2] = 0.0
         elif type(c) == np.ndarray and c.size == f.shape[0]: # Function values for faces
@@ -143,6 +144,7 @@ class Viewer():
             #print("Vertex function values")
         else:
             colors = np.ones_like(v)
+            colors[:, 0] = 1.0
             colors[:, 1] = 0.874
             colors[:, 2] = 0.0
 
@@ -370,11 +372,22 @@ class Viewer():
     def update_object(self, oid=0, vertices=None, colors=None, faces=None):
         obj = self.__objects[oid]
         if type(vertices) != type(None):
-            v = vertices.astype("float32", copy=False)
+            if obj["coloring"] == "FaceColors":
+                f = obj["arrays"][1]
+                verts = np.zeros((f.shape[0]*3, 3), dtype="float32")
+                for ii in range(f.shape[0]):
+                    #print(ii*3, f[ii])
+                    verts[ii*3] = vertices[f[ii,0]]
+                    verts[ii*3+1] = vertices[f[ii,1]]
+                    verts[ii*3+2] = vertices[f[ii,2]]
+                v = verts
+
+            else:
+                v = vertices.astype("float32", copy=False)
             obj["geometry"].attributes["position"].array = v
             #self.wireframe.attributes["position"].array = v # Wireframe updates?
             obj["geometry"].attributes["position"].needsUpdate = True
-#            obj["geometry"].exec_three_obj_method('computeVertexNormals')
+ #           obj["geometry"].exec_three_obj_method('computeVertexNormals')
         if type(colors) != type(None):
             colors, coloring = self.__get_colors(obj["arrays"][0], obj["arrays"][1], colors, obj["shading"])
             colors = colors.astype("float32", copy=False)
