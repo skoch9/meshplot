@@ -418,8 +418,8 @@ class Viewer():
 
 
     def add_text(self, text, shading={}):
-        self.update_shading(shading)
-        tt = p3s.TextTexture(string=text, color=self.s["text_color"])
+        sh = self.__get_shading(shading)
+        tt = p3s.TextTexture(string=text, color=sh["text_color"])
         sm = p3s.SpriteMaterial(map=tt)
         self.text = p3s.Sprite(material=sm, scaleToTexture=True)
         self.scene.add(self.text)
