@@ -178,7 +178,8 @@ class Viewer():
 
         return colors, v_color
 
-    def add_mesh(self, v, f, c=None, uv=None, n=None, shading={}, texture_data=None):
+    def add_mesh(self, v, f, c=None, uv=None, n=None, shading={}, texture_data=None, **kwargs):
+        shading.update(kwargs)
         sh = self.__get_shading(shading)
         mesh_obj = {}
 
@@ -278,7 +279,8 @@ class Viewer():
         return self.__add_object(mesh_obj)
 
 
-    def add_lines(self, beginning, ending, shading={}, obj=None):
+    def add_lines(self, beginning, ending, shading={}, obj=None, **kwargs):
+        shading.update(kwargs)
         if len(beginning.shape) == 1:
             if len(beginning) == 2:
                 beginning = np.array([[beginning[0], beginning[1], 0]])
@@ -299,7 +301,8 @@ class Viewer():
         lines = lines.reshape((-1, 3))
         return self.__add_line_geometry(lines, sh, obj)
 
-    def add_edges(self, vertices, edges, shading={}, obj=None):
+    def add_edges(self, vertices, edges, shading={}, obj=None, **kwargs):
+        shading.update(kwargs)
         if vertices.shape[1] == 2:
             vertices = np.append(
                 vertices, np.zeros([vertices.shape[0], 1]), 1)
@@ -312,7 +315,8 @@ class Viewer():
             cnt += 2
         return self.__add_line_geometry(lines, sh, obj)
 
-    def add_points(self, points, c=None, shading={}, obj=None):
+    def add_points(self, points, c=None, shading={}, obj=None, **kwargs):
+        shading.update(kwargs)
         if len(points.shape) == 1:
             if len(points) == 2:
                 points = np.array([[points[0], points[1], 0]])
@@ -417,7 +421,8 @@ class Viewer():
 #        self.scene.exec_three_obj_method('update')
 
 
-    def add_text(self, text, shading={}):
+    def add_text(self, text, shading={}, **kwargs):
+        shading.update(kwargs)
         sh = self.__get_shading(shading)
         tt = p3s.TextTexture(string=text, color=sh["text_color"])
         sm = p3s.SpriteMaterial(map=tt)

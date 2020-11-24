@@ -76,7 +76,8 @@ class Subplot():
 
         return s
 
-def plot(v, f=None, c=None, uv=None, n=None, shading={}, plot=None, return_plot=True, filename="", texture_data=None):#, return_id=False):
+def plot(v, f=None, c=None, uv=None, n=None, shading={}, plot=None, return_plot=True, filename="", texture_data=None, **kwargs):#, return_id=False):
+    shading.update(kwargs)
     if not plot:
         view = Viewer(shading)
     else:
@@ -98,7 +99,8 @@ def plot(v, f=None, c=None, uv=None, n=None, shading={}, plot=None, return_plot=
     if return_plot or rendertype == "WEBSITE":
         return view
 
-def subplot(v, f=None, c=None, uv=None, n=None, shading={}, s=[1, 1, 0], data=None, texture_data=None):
+def subplot(v, f=None, c=None, uv=None, n=None, shading={}, s=[1, 1, 0], data=None, texture_data=None, **kwargs):
+    shading.update(kwargs)
     shading["width"] = 400
     shading["height"] = 400
     view = Viewer(shading)
