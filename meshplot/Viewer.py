@@ -376,6 +376,10 @@ class Viewer():
     def update_object(self, oid=0, vertices=None, colors=None, faces=None):
         obj = self.__objects[oid]
         if type(vertices) != type(None):
+            if vertices.shape[1] == 2:
+                vertices3 = np.zeros((vertices.shape[0],3))
+                vertices3[:,:2] = vertices
+                vertices = vertices3
             if obj["coloring"] == "FaceColors":
                 f = obj["arrays"][1]
                 verts = np.zeros((f.shape[0]*3, 3), dtype="float32")
