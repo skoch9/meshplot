@@ -62,10 +62,11 @@ class Viewer():
         lines = lines.astype("float32", copy=False)
         mi = np.min(lines, axis=0)
         ma = np.max(lines, axis=0)
-        geometry = p3s.BufferGeometry(attributes={'position': p3s.BufferAttribute(lines, normalized=False)})
-        material = p3s.LineBasicMaterial(linewidth=shading["line_width"], color=shading["line_color"])
+        
+        geometry = p3s.LineSegmentsGeometry(positions=lines.reshape((-1, 2, 3)))
+        material = p3s.LineMaterial(linewidth=shading["line_width"], color=shading["line_color"])
                     #, vertexColors='VertexColors'),
-        lines = p3s.LineSegments(geometry=geometry, material=material) #type='LinePieces')
+        lines = p3s.LineSegments2(geometry=geometry, material=material) #type='LinePieces')
         line_obj = {"geometry": geometry, "mesh": lines, "material": material,
                     "max": ma, "min": mi, "type": "Lines", "wireframe": None}
 
