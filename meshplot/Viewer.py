@@ -194,6 +194,9 @@ class Viewer():
                 f_tmp[i*4+3] = np.array([f[i][2], f[i][0], f[i][3]])
             f = f_tmp
 
+            if c is not None and len(c) == len(v):
+                c = np.repeat(c, 4, axis=0)
+
         if v.shape[1] == 2:
             v = np.append(v, np.zeros([v.shape[0], 1]), 1)
 
