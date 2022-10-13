@@ -5,7 +5,7 @@ import matplotlib as mpl
 # Helper functions
 def get_colors(inp, colormap="viridis", normalize=True, vmin=None, vmax=None):
     colormap = plt.cm.get_cmap(colormap)
-    if normalize:
+    if not normalize:
         vmin=np.min(inp)
         vmax=np.max(inp)
 
