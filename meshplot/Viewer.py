@@ -461,8 +461,13 @@ class Viewer():
         diag = np.linalg.norm(ma-mi)
         mean = (ma - mi) / 2 + mi
         for r, obj in enumerate(self.__objects):
-            v = self.__objects[obj]["geometry"].attributes["position"].array
-            v -= mean
+            try:
+                v = self.__objects[obj]["geometry"].attributes["position"].array
+                v -= mean
+            except:
+                v = self.__objects[obj]["geometry"].positions
+                v -= mean
+            
 
         scale = self.__s["scale"] * (diag)
         self._orbit.target = [0.0, 0.0, 0.0]
@@ -495,8 +500,12 @@ class Viewer():
 
         # Revert changes
         for r, obj in enumerate(self.__objects):
-            v = self.__objects[obj]["geometry"].attributes["position"].array
-            v += mean
+            try:
+                v = self.__objects[obj]["geometry"].attributes["position"].array
+                v += mean
+            except:
+                v = self.__objects[obj]["geometry"].positions
+                v += mean
         self.__update_view()
 
         return s
