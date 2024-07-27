@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 # Helper functions
-def get_colors(inp, colormap="viridis", normalize=True, vmin=None, vmax=None):
+def get_colors(inp, colormap="viridis", vmin=None, vmax=None):
     colormap = plt.cm.get_cmap(colormap)
-    if normalize:
+    if vmin==None or vmax==None:
         vmin=np.min(inp)
         vmax=np.max(inp)
 
